@@ -14,6 +14,7 @@ import {
   View,
   Text,
   StatusBar,
+  DeviceEventEmitter
 } from 'react-native';
 
 import {
@@ -25,24 +26,59 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 import { showFloatingBubble, hideFloatingBubble, requestPermission, initialize } from "react-native-floating-bubble"
 class App extends React.Component {
+  state={
+    play:true
+  }
+  quick=true;
   constructor(){
     super()
-    requestPermission()
-    .then(() => {
-      console.log("Permission Granted")
-      initialize()
-      .then(() => {
-        console.log("Initialized the bubble mange")
-        showFloatingBubble(10, 10)
-        .then(() => console.log("Floating Bubble Added"));
-      })
-    })
-    .catch(() => console.log("Permission is not granted"))
+  }
+  toggleBubble(){
+    console.log('toggle bubble');
+    hideFloatingBubble()
+    .then(() => {console.log("Floating Bubble Removed"); this.setState({play:!this.state.play});console.log(this.state.play)});
+   
   }
   render(){
+    
+         requestPermission()
+        .then(() => {
+           console.log("Permission Granted")
+           initialize()
+           .then(() => 
+           {
+             console.log("Initialized the bubble mange")
+             if(this.state.play){
+             showFloatingBubble(10, 10,1)
+             .then(() => console.log("Floating Bubble Added"));
+             }else{
+              showFloatingBubble(10, 10,2)
+              .then(() => console.log("Floating Bubble Added"));
+             }
+           })
+        })
+        .catch(() => console.log("Permission is not granted"))
+          DeviceEventEmitter.addListener("floating-bubble-press", (e) => 
+          {
+            // What to do when user press the bubble
+            console.log("Press Bubble")
+            console.log(this.quick)
+            if(this.quick)
+              this.toggleBubble()
+            this.quick=false
+            setTimeout(()=>{this.quick=true},500)//it is not working in background as we have to run it as service 
+    
+          });
+          DeviceEventEmitter.addListener("floating-bubble-remove", (e) => 
+          {
+            // What to do when user removes the bubble
+            console.log("Remove Bubble")
+          });
+  
   return (
    <View><Text>cool </Text></View>
-  );}
+  );
+}
 };
 
 const styles = StyleSheet.create({
